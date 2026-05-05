@@ -6,6 +6,10 @@ It uses Qwen2.5-VL for local inference and evaluates selective prediction behavi
 
 ![ReliableVQA-Lite qualitative samples](assets/sample_predictions_selector_500.png)
 
+The central comparison is not just "which answer is right?" but "when should the system answer at all?"
+
+![Baseline versus proposed selective VQA samples](assets/baseline_vs_proposed_500.png)
+
 ## Challenge Target: Reliable Visual Question Answering
 
 This project follows the Reliable VQA / selective prediction setting.
@@ -27,6 +31,13 @@ The current checked run uses Qwen2.5-VL-3B-Instruct on real VQAv2 validation exa
 | Direct answer | val-500 | 0.8560 | 1.0000 | 0.8560 | 0.1440 | 0.1440 |
 | Verbalized confidence | val-500 | 0.8160 | 0.9960 | 0.8193 | 0.1807 | 0.1229 |
 | Selector over verbalized | held-out 150 | 0.8244 | 0.4467 | 0.9303 | 0.0697 | 0.2612 |
+
+Interpretation:
+
+- The direct baseline answers every question, so it has full coverage but cannot abstain.
+- Verbalized confidence gives the VLM a confidence score, but the model is still often overconfident.
+- The selector is conservative: it answers fewer questions, but the answered subset is much more reliable.
+- This is the Reliable VQA tradeoff: increasing reliability usually reduces coverage.
 
 Accuracy-coverage and risk-coverage examples:
 
@@ -54,6 +65,12 @@ Current validation-subset exports:
 - `leaderboard_exports/vqa_evalai/selector_verbalized_500_heldout_val_style.json`
 
 For official leaderboard upload, run the same pipeline on the official VQAv2 test-dev/test split first. The current files are format-ready comparison artifacts from validation data, not official leaderboard submissions.
+
+Reliable VQA-style exports with confidence and abstention fields:
+
+- `leaderboard_exports/reliable_vqa/qwen3b_direct_500_gamma0.5.json`
+- `leaderboard_exports/reliable_vqa/qwen3b_verbalized_strict_500_gamma0.5.json`
+- `leaderboard_exports/reliable_vqa/selector_verbalized_500_heldout_gamma0.5.json`
 
 ## Quick Start: Real VLM + Real VQAv2 Subset
 

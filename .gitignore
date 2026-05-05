@@ -13,6 +13,7 @@ env/
 # Logs / results
 logs/
 results/
+local_docs/
 wandb/
 runs/
 
