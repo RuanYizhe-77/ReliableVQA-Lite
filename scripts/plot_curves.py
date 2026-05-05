@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
+
+os.environ.setdefault("MPLCONFIGDIR", str((Path("logs") / "matplotlib").resolve()))
 
 import matplotlib
 
@@ -57,4 +60,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

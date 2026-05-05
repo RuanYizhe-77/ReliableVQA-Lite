@@ -8,9 +8,12 @@ from src.utils.text import clean_short_answer
 
 
 CONFIDENCE_PROMPT = (
+    "You are answering a visual question about the image.\n"
     "Question: {question}\n"
-    "Answer the question based on the image. Return JSON with keys: answer, confidence. "
-    "Confidence must be a number between 0 and 1. Use a short answer."
+    "Return exactly one valid JSON object and no other text.\n"
+    "The JSON schema is: {{\"answer\": \"short answer\", \"confidence\": 0.0}}.\n"
+    "The confidence value must be a number between 0 and 1, where 1 means completely certain.\n"
+    "Do not wrap the JSON in markdown."
 )
 
 
@@ -56,4 +59,3 @@ def parse_verbalized_output(raw_output: str) -> VerbalizedPrediction:
     if conf_match:
         confidence = _clamp_confidence(float(conf_match.group(1)))
     return VerbalizedPrediction(answer=answer, confidence=confidence, parse_ok=False)
-

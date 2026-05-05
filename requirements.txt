@@ -1,8 +1,10 @@
 # If cat-sam already has a working CUDA PyTorch build, do not reinstall torch blindly.
-torch
-transformers>=4.49.0
-accelerate
-pillow
+# This server was validated with torch 1.13.1+cu117, so keep accelerate pinned
+# below the release line that forces torch>=2.
+torch<2
+transformers==4.49.0
+accelerate==0.34.2
+pillow==10.4.0
 tqdm
 numpy
 pandas
@@ -10,9 +12,10 @@ scikit-learn
 matplotlib
 pyyaml
 jsonlines
-gradio
-qwen-vl-utils
+gradio==4.44.1
+qwen-vl-utils==0.0.14
 huggingface_hub
 requests
-bitsandbytes; platform_system == "Linux"
-
+pytest
+# Optional for quantized loading; install manually only if needed.
+# bitsandbytes; platform_system == "Linux"

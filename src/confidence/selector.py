@@ -67,9 +67,13 @@ def train_selector(records: list[dict[str, Any]], labels: list[int]) -> Selector
     return SelectorArtifacts(model=model, feature_names=FEATURE_NAMES)
 
 
+def predict_selector_confidence(artifacts: SelectorArtifacts, records: list[dict[str, Any]]) -> list[float]:
+    x = np.asarray([features_from_record(record) for record in records], dtype=np.float32)
+    return artifacts.model.predict_proba(x)[:, 1].astype(float).tolist()
+
+
 def save_selector(artifacts: SelectorArtifacts, path: str | Path) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("wb") as f:
         pickle.dump(artifacts, f)
-

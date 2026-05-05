@@ -12,10 +12,18 @@ def available(module_name: str) -> bool:
 
 def main() -> None:
     print(f"Python: {sys.version.split()[0]} ({platform.platform()})")
+    print(f"Python executable: {sys.executable}")
     conda_env = os.environ.get("CONDA_DEFAULT_ENV", "")
+    conda_prefix = os.environ.get("CONDA_PREFIX", "")
     print(f"Conda env: {conda_env or '<not set>'}")
+    print(f"Conda prefix: {conda_prefix or '<not set>'}")
     if conda_env != "cat-sam":
         print("WARNING: expected conda environment 'cat-sam' for GPU/model work.")
+    if conda_prefix and not sys.executable.startswith(conda_prefix):
+        print(
+            "WARNING: python executable is not inside CONDA_PREFIX. "
+            "Use $CONDA_PREFIX/bin/python if pyenv shims are ahead of conda on PATH."
+        )
 
     try:
         import torch
@@ -49,4 +57,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
