@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
 from src.data.vqav2 import load_vqav2_subset
 from src.evaluation.vqa_accuracy import vqa_soft_accuracy
 from src.utils.io import read_jsonl
+from src.utils.text import normalize_answer
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,6 +26,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out", default="assets/baseline_vs_proposed_500.png")
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--max-samples", type=int, default=8)
+    parser.add_argument("--baseline-label", default="Direct baseline")
+    parser.add_argument("--proposed-label", default="Proposed")
+    parser.add_argument(
+        "--subtitle",
+        default="Baseline answers directly. Proposed uses confidence-aware VQA output and abstains below gamma.",
+    )
     return parser.parse_args()
 
 
@@ -78,37 +85,70 @@ def _build_records(
                 "proposed_score": prop_score,
                 "proposed_confidence": confidence,
                 "proposed_answered": confidence >= threshold,
+                "answer_diff": normalize_answer(str(base.get("pred_answer", "")))
+                != normalize_answer(str(prop.get("pred_answer", ""))),
             }
         )
     return rows
 
 
 def _select(records: list[dict[str, Any]], max_samples: int) -> list[dict[str, Any]]:
+    fix_answered = [
+        r
+        for r in records
+        if r["answer_diff"]
+        and r["proposed_answered"]
+        and r["baseline_score"] < 0.6
+        and r["proposed_score"] >= 0.6
+    ]
+    both_correct_different = [
+        r
+        for r in records
+        if r["answer_diff"]
+        and r["proposed_answered"]
+        and r["baseline_score"] >= 0.6
+        and r["proposed_score"] >= 0.6
+    ]
     good_abstain = [
         r
         for r in records
-        if not r["proposed_answered"] and r["proposed_score"] < 0.6 and r["baseline_score"] < 0.6
+        if r["answer_diff"]
+        and not r["proposed_answered"]
+        and r["proposed_score"] < 0.6
+        and r["baseline_score"] < 0.6
     ]
     confident_correct = [
         r for r in records if r["proposed_answered"] and r["proposed_score"] >= 0.6
     ]
     abstain_cost = [
-        r for r in records if not r["proposed_answered"] and r["proposed_score"] >= 0.6
+        r
+        for r in records
+        if r["answer_diff"] and not r["proposed_answered"] and r["proposed_score"] >= 0.6
     ]
     failure = [
-        r for r in records if r["proposed_answered"] and r["proposed_score"] < 0.6
+        r
+        for r in records
+        if r["answer_diff"] and r["proposed_answered"] and r["proposed_score"] < 0.6
     ]
 
+    fix_answered.sort(key=lambda r: (r["proposed_score"] - r["baseline_score"], r["proposed_confidence"]), reverse=True)
+    both_correct_different.sort(key=lambda r: r["proposed_confidence"], reverse=True)
     good_abstain.sort(key=lambda r: r["proposed_confidence"])
     confident_correct.sort(key=lambda r: r["proposed_confidence"], reverse=True)
     abstain_cost.sort(key=lambda r: r["proposed_score"], reverse=True)
     failure.sort(key=lambda r: r["proposed_confidence"], reverse=True)
 
     selected = []
-    for bucket in (confident_correct[:3], good_abstain[:3], abstain_cost[:1], failure[:1]):
+    for bucket in (
+        fix_answered[:5],
+        both_correct_different[:1],
+        good_abstain[:2],
+        abstain_cost[:1],
+        failure[:2],
+    ):
         selected.extend(bucket)
     seen = {row["question_id"] for row in selected}
-    for row in records:
+    for row in [r for r in records if r["answer_diff"]] + records:
         if len(selected) >= max_samples:
             break
         if row["question_id"] not in seen:
@@ -180,7 +220,7 @@ def main() -> None:
     draw.text((margin, 24), "Baseline vs Proposed Reliable VQA", fill=(23, 31, 43), font=title_font)
     draw.text(
         (margin, 58),
-        "Baseline: direct Qwen answer, confidence=1.0. Proposed: selector confidence with abstention at gamma=0.5.",
+        args.subtitle,
         fill=(86, 97, 113),
         font=small_font,
     )
@@ -201,7 +241,7 @@ def main() -> None:
 
         bx = x + 690
         py = y + 26
-        draw.text((bx, py), "Baseline", font=head_font, fill=(23, 31, 43))
+        draw.text((bx, py), args.baseline_label, font=head_font, fill=(23, 31, 43))
         py += 32
         py = _wrapped(draw, (bx, py), f"answer: {row['baseline_answer']}", strong_font, (23, 31, 43), 36)
         py += 8
@@ -213,7 +253,7 @@ def main() -> None:
 
         px = x + 1020
         py = y + 26
-        draw.text((px, py), "Proposed", font=head_font, fill=(23, 31, 43))
+        draw.text((px, py), args.proposed_label, font=head_font, fill=(23, 31, 43))
         py += 32
         py = _wrapped(draw, (px, py), f"answer: {row['proposed_answer']}", strong_font, (23, 31, 43), 34)
         py += 8

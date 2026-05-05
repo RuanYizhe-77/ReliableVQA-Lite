@@ -4,11 +4,13 @@ ReliableVQA-Lite is a lightweight, reproducible research project for reliability
 
 It uses Qwen2.5-VL for local inference and evaluates selective prediction behavior: each example receives an answer, confidence score, and abstention decision under a global threshold `gamma`.
 
-![ReliableVQA-Lite qualitative samples](assets/sample_predictions_selector_500.png)
+Answer-level comparison: direct short-answer baseline versus confidence-prompted Qwen. The examples are mined from real VQAv2 validation predictions to show answer differences, fixes, and failure cases.
 
-The central comparison is not just "which answer is right?" but "when should the system answer at all?"
+![Baseline versus confidence-prompted VQA samples](assets/baseline_vs_proposed_500.png)
 
-![Baseline versus proposed selective VQA samples](assets/baseline_vs_proposed_500.png)
+Selective reliability comparison: direct baseline always answers, while the selector may abstain when confidence is low. This is the core Reliable VQA behavior: sometimes the best output is no answer.
+
+![Baseline versus selector abstention samples](assets/baseline_vs_selector_500.png)
 
 ## Challenge Target: Reliable Visual Question Answering
 
