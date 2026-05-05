@@ -1,0 +1,7 @@
+backend: api
+api_url: null
+api_key_env: VLM_API_KEY
+generation:
+  max_new_tokens: 64
+  do_sample: false
+

@@ -1,0 +1,18 @@
+# If cat-sam already has a working CUDA PyTorch build, do not reinstall torch blindly.
+torch
+transformers>=4.49.0
+accelerate
+pillow
+tqdm
+numpy
+pandas
+scikit-learn
+matplotlib
+pyyaml
+jsonlines
+gradio
+qwen-vl-utils
+huggingface_hub
+requests
+bitsandbytes; platform_system == "Linux"
+
